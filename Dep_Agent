@@ -1,10 +1,4 @@
-'
-'  
-'
-' Purpose:
-'     GLPI Agent Unattended Deployment.
-'
-'
+
 
 Option Explicit
 Dim Reconfigure, Repair, Verbose
